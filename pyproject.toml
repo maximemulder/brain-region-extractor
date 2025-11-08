@@ -1,0 +1,29 @@
+[build-system]
+requires = ["uv_build>=0.9.8"]
+build-backend = "uv_build"
+
+[project]
+name = "brain-region-extractor"
+version = "0.0.0"
+requires-python = ">=3.12"
+dependencies = [
+    "nibabel",
+    "nilearn>=0.12.1",
+    "numpy>=2.3.4",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14.4",
+]
+
+[project.scripts]
+extract-brain-regions = "brain_region_extractor.extract_brain_regions:main"
+
+[tool.ruff]
+line-length = 120
+preview = true
+
+[tool.ruff.lint]
+ignore = ["E202", "E203", "E221", "E241", "E251", "E272"]
+select = ["E", "F", "I", "N", "RUF", "UP", "W"]
