@@ -7,8 +7,8 @@ from pathlib import Path
 import numpy as np
 
 from brain_region_extractor.atlas import AtlasRegion, load_atlas_dictionary, print_atlas_regions
-from brain_region_extractor.nifti import NDArray3, has_same_dims, resample_to_same_dims, load_nifti_image
-from brain_region_extractor.scan import Point3D, ScanRegion
+from brain_region_extractor.nifti import NDArray3, get_voxel_size, has_same_dims, resample_to_same_dims, load_nifti_image
+from brain_region_extractor.scan import Point3D, Scan, ScanRegion
 
 # ruff: noqa
 # analyze-scan-regions --atlas-image ../atlases/mni_icbm152_nlin_sym_09c_CerebrA_nifti/mni_icbm152_CerebrA_tal_nlin_sym_09c.nii --atlas-dictionary ../atlases/mni_icbm152_nlin_sym_09c_CerebrA_nifti/CerebrA_LabelDetails.csv --scan ../../COMP5411/demo_587630_V1_t1_001.nii
@@ -53,15 +53,23 @@ def main() -> None:
     atlas_data: NDArray3[np.float32] = atlas_image.get_fdata()
     scan_data:  NDArray3[np.float32] = scan_image.get_fdata()
 
-    # Dictionary to store region statistics
-    regions_statistics: dict[str, ScanRegion] = {}
+    regions: list[ScanRegion] = []
 
     for region in atlas_dictionary.regions:
         print(f"Processing region '{region.name}' ({region.value})")
 
-        regions_statistics[region.name] = collect_region_statistics(region, atlas_data, scan_data)
+        regions.append(collect_region_statistics(region, atlas_data, scan_data))
 
-    print(json.dumps({region_name: region_statistics.model_dump() for region_name, region_statistics in regions_statistics.items()}, indent=4))
+    scan = Scan(
+        file_name=scan_path.name,
+        file_size=scan_path.stat().st_size,
+        dimensions=f"{scan_data.shape[0]}x{scan_data.shape[1]}x{scan_data.shape[2]}",
+        voxel_size=get_voxel_size(scan_image),
+        regions=regions
+    )
+
+    # Print the complete scan object as JSON
+    print(json.dumps(scan.model_dump(), indent=4))
 
 
 def collect_region_statistics(

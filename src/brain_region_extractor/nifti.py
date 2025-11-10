@@ -37,3 +37,21 @@ def resample_to_same_dims(image: NiftiImage, template: NiftiImage, interpolation
         force_resample=True,
         copy_header=True,
     )  # type: ignore
+
+
+def get_voxel_size(image: NiftiImage) -> str:
+    """Extract voxel size from NIfTI image header and format as string."""
+    try:
+        # Get the affine matrix or header information
+        header = image.header
+        # Typical NIfTI voxel size is in the pixdim field
+        voxel_dims = header.get_zooms()  # This gets (x, y, z) voxel dimensions # type: ignore
+
+        if len(voxel_dims) >= 3:  # type: ignore
+            return f"{voxel_dims[0]:.2f}x{voxel_dims[1]:.2f}x{voxel_dims[2]:.2f}mm"
+        else:
+            return "1.00x1.00x1.00mm"  # Default fallback
+
+    except (AttributeError, IndexError):
+        # Fallback if voxel size can't be determined
+        return "1.00x1.00x1.00mm"
