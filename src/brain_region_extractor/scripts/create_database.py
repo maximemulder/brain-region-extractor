@@ -2,12 +2,13 @@
 
 import argparse
 
-from sqlalchemy import URL, Engine, create_engine, text
+from sqlalchemy import Engine, text
 from sqlalchemy.dialects.postgresql import dialect as postgresql_dialect
 from sqlalchemy.schema import CreateTable
 
+from brain_region_extractor.database.engine import get_engine
 from brain_region_extractor.database.models import Base
-from brain_region_extractor.util import print_error_exit, read_environment_variable
+from brain_region_extractor.util import print_error_exit
 
 
 def create_database(engine: Engine):
@@ -30,21 +31,6 @@ def print_create_database() -> None:
     for table in Base.metadata.sorted_tables:
         statement = CreateTable(table)
         print(statement.compile(dialect=dialect))
-
-
-def get_engine() -> Engine:
-    print("Connecting to the database...")
-
-    url = URL.create(
-        drivername = 'postgresql',
-        host       = read_environment_variable("POSTGIS_HOST"),
-        port       = int(read_environment_variable("POSTGIS_PORT")),
-        username   = read_environment_variable("POSTGIS_USERNAME"),
-        password   = read_environment_variable("POSTGIS_PASSWORD"),
-        database   = read_environment_variable("POSTGIS_DATABASE"),
-    )
-
-    return create_engine(url)
 
 
 def main() -> None:

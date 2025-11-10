@@ -32,6 +32,10 @@ def main() -> None:
         required=True,
         help="The brain scan NIfTI image.")
 
+    parser.add_argument('--output',
+        type=Path,
+        help="Print the scan information JSON in a file instead of the console.")
+
     args = parser.parse_args()
 
     atlas_dictionary_path = Path(args.atlas_dictionary)
@@ -68,8 +72,16 @@ def main() -> None:
         regions=regions
     )
 
-    # Print the complete scan object as JSON
-    print(json.dumps(scan.model_dump(), indent=4))
+    # Convert the scan object to JSON.
+    scan_json = json.dumps(scan.model_dump(), indent=4)
+
+    if args.output:
+        print(f"Writing scan information to '{args.output}'.")
+        with open(args.output, 'w') as f:
+            f.write(scan_json)
+    else:
+        print(scan_json)
+
 
 
 def collect_region_statistics(

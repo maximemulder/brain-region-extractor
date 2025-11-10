@@ -5,7 +5,7 @@ from brain_region_extractor.database.models import DBScan, DBScanRegion
 from brain_region_extractor.scan import Point3D, Scan
 
 
-def insert_scan(db: Session, scan: Scan):
+def insert_scan(db: Session, scan: Scan) -> DBScan:
     # Insert the main scan record.
     db_scan = DBScan(
         file_name=scan.file_name,
@@ -34,6 +34,8 @@ def insert_scan(db: Session, scan: Scan):
         ))
 
     db.commit()
+    db.refresh(db_scan)
+    return db_scan
 
 
 def create_point(centroid: Point3D) -> str:
