@@ -40,8 +40,8 @@ class DBScanRegion(Base):
     median_intensity : Mapped[float]
 
     # Geometric properties
-    centroid     : Mapped[str] = mapped_column(Geometry('POINTZ', srid=4326),)
-    bounding_box : Mapped[str] = mapped_column(Geometry('BOX3D', srid=4326))
+    centroid     : Mapped[Geometry] = mapped_column(Geometry('POINTZ', srid=4326),)
+    bounding_box : Mapped[Geometry] = mapped_column(Geometry('POLYHEDRALSURFACEZ', srid=4326))
 
     # Relationships
-    mri_scan: Mapped['DBScan'] = relationship(back_populates='regions')
+    scan: Mapped['DBScan'] = relationship(back_populates='regions')

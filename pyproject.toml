@@ -11,7 +11,7 @@ dependencies = [
     "nibabel",
     "nilearn>=0.12.1",
     "numpy>=2.3.4",
-    # "psycopg2-binary",
+    "psycopg2-binary",
     "pydantic",
     "sqlalchemy",
 ]
@@ -22,9 +22,10 @@ dev = [
 ]
 
 [project.scripts]
-create-database      = "brain_region_extractor.scripts.create_database:main"
 analyze-scan-regions = "brain_region_extractor.scripts.analyze_scan_regions:main"
+create-database      = "brain_region_extractor.scripts.create_database:main"
 extract-scan-regions = "brain_region_extractor.scripts.extract_scan_regions:main"
+insert-scan          = "brain_region_extractor.scripts.insert_scan:main"
 patch-scan           = "brain_region_extractor.scripts.patch_scan:main"
 
 [tool.ruff]

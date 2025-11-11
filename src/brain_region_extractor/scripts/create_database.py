@@ -2,7 +2,7 @@
 
 import argparse
 
-from sqlalchemy import Engine, text
+from sqlalchemy import Engine, inspect, text
 from sqlalchemy.dialects.postgresql import dialect as postgresql_dialect
 from sqlalchemy.schema import CreateTable
 
@@ -14,14 +14,15 @@ from brain_region_extractor.util import print_error_exit
 def create_database(engine: Engine):
     try:
         with engine.connect() as connection:
-            print("Enabling PostGIS extensions...")
+            print("Enabling PostGIS extension...")
             connection.execute(text("CREATE EXTENSION IF NOT EXISTS postgis;"))
             connection.commit()
-            print("PostGIS extensions enabled.")
 
-        print("🗃️ Creating tables...")
+        if len(inspect(engine).get_table_names()) > 0:
+            print("Dropping existing tables...")
+            Base.metadata.drop_all(engine)
+        print("Creating tables...")
         Base.metadata.create_all(engine)
-        print("Tables created.")
     except Exception as error:
         print_error_exit(f"Error while creating the database:\n{error}")
 
@@ -37,20 +38,20 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Create or reset the PostGIS MRI scans database.")
 
     parser.add_argument(
-        "--print-sql",
+        "--print-only",
         action="store_true",
         help="Print the SQL statements instead of executing them."
     )
 
     args = parser.parse_args()
 
-    if args.print_sql:
+    if args.print_only:
         print_create_database()
         return
 
     engine = get_engine()
     create_database(engine)
-    print("Database setup completed!")
+    print("Success!")
 
 
 if __name__ == '__main__':

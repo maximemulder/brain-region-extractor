@@ -2,19 +2,21 @@
 
 import argparse
 import json
+import sys
 from pathlib import Path
+from typing import TextIO
 
 from sqlalchemy.orm import Session
 
 from brain_region_extractor.database.engine import get_engine
 from brain_region_extractor.database.insertion import insert_scan
 from brain_region_extractor.scan import Scan
+from brain_region_extractor.util import print_error_exit
 
 
-def read_scan_json(path: Path) -> Scan:
-    with open(path) as file:
-        scan_data = json.load(file)
-
+def read_scan_json(text: TextIO) -> Scan:
+    print("Loading scan data...")
+    scan_data = json.load(text)
     return Scan(**scan_data)
 
 
@@ -24,30 +26,28 @@ def main() -> None:
     )
 
     parser.add_argument(
-        '--input',
+        '--file',
         type=Path,
-        required=True,
-        help='Input JSON file containing the scan data.'
+        help='JSON file containing the scan data. If not provided, read from the standard input.'
     )
 
     args = parser.parse_args()
 
-    # Validate input file exists
-    if not args.input.exists():
-        raise FileNotFoundError(f"Input file not found: {args.input}")
+    if args.file:
+        if not args.file.exists():
+            print_error_exit(f"File '{args.file}' not found.")
 
-    print(f"Loading Scan data from {args.input}")
-
-    # Load Scan from JSON
-    scan = read_scan_json(args.input)
+        with open(args.file) as file:
+            scan = read_scan_json(file)
+    else:
+        scan = read_scan_json(sys.stdin)
 
     print(f"Loaded scan: {scan.file_name}")
     print(f"Number of regions: {len(scan.regions)}")
 
-    # Insert into database
-    print("Inserting scan into database...")
-
     session = Session(get_engine())
+
+    print("Inserting scan into database...")
 
     db_scan = insert_scan(session, scan)
 
