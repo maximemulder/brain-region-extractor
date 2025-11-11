@@ -1,8 +1,15 @@
 from geoalchemy2 import WKTElement
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from brain_region_extractor.database.models import DBScan, DBScanRegion
 from brain_region_extractor.scan import Point3D, Scan
+
+
+def select_scan(db: Session, file_name: str) -> DBScan | None:
+    return db.execute(
+        select(DBScan).where(DBScan.file_name == file_name)
+    ).scalar_one_or_none()
 
 
 def insert_scan(db: Session, scan: Scan) -> DBScan:

@@ -9,7 +9,7 @@ from typing import TextIO
 from sqlalchemy.orm import Session
 
 from brain_region_extractor.database.engine import get_engine
-from brain_region_extractor.database.insertion import insert_scan
+from brain_region_extractor.database.query import insert_scan, select_scan
 from brain_region_extractor.scan import Scan
 from brain_region_extractor.util import print_error_exit
 
@@ -45,11 +45,14 @@ def main() -> None:
     print(f"Loaded scan: {scan.file_name}")
     print(f"Number of regions: {len(scan.regions)}")
 
-    session = Session(get_engine())
+    db = Session(get_engine())
+
+    if select_scan(db, scan.file_name) is not None:
+        print_error_exit(f"Scan '{scan.file_name}' is already inserted in the database.")
 
     print("Inserting scan into database...")
 
-    db_scan = insert_scan(session, scan)
+    db_scan = insert_scan(db, scan)
 
     print(f"Successfully inserted scan with ID: {db_scan.id}")
 

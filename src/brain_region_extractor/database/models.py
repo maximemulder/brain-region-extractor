@@ -12,7 +12,7 @@ class DBScan(Base):
     __tablename__ = 'scan'
 
     id         : Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    file_name  : Mapped[str]
+    file_name  : Mapped[str] = mapped_column(index=True, unique=True)
     file_size  : Mapped[int]
     dimensions : Mapped[str]
     voxel_size : Mapped[str]
@@ -28,7 +28,7 @@ class DBScanRegion(Base):
     scan_id : Mapped[int] = mapped_column(ForeignKey('scan.id'))
 
     # Region atlas properties
-    name  : Mapped[str]
+    name  : Mapped[str] = mapped_column(index=True)
     value : Mapped[int]
 
     # Region numeric properties
