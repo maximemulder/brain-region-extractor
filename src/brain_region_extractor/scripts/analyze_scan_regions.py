@@ -46,6 +46,10 @@ def main() -> None:
     atlas_image      = load_nifti_image(atlas_image_path)
     scan_image       = load_nifti_image(scan_path)
 
+    print(atlas_image.header)
+    print(scan_image.header)
+    return
+
     print_atlas_regions(atlas_dictionary)
 
     if not has_same_dims(atlas_image, scan_image):
