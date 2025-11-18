@@ -7,7 +7,9 @@ from pathlib import Path
 import numpy as np
 
 from brain_region_database.atlas import AtlasRegion, load_atlas_dictionary, print_atlas_regions
-from brain_region_database.nifti import NDArray3, get_voxel_size, has_same_dims, resample_to_same_dims, load_nifti_image
+from brain_region_database.nifti import NDArray3, ants_to_nib, get_voxel_size, has_same_dims, nib_to_ants, resample_to_same_dims, load_nifti_image
+from brain_region_database.process.registration import register_nifti
+from brain_region_database.process.vectorization import nifti_to_polyhedralsurface
 from brain_region_database.scan import Point3D, Scan, ScanRegion
 
 # ruff: noqa
@@ -46,17 +48,13 @@ def main() -> None:
     atlas_image      = load_nifti_image(atlas_image_path)
     scan_image       = load_nifti_image(scan_path)
 
-    print(atlas_image.header)
-    print(scan_image.header)
-    return
-
     print_atlas_regions(atlas_dictionary)
 
-    if not has_same_dims(atlas_image, scan_image):
-        print("Resampling the atlas to the scan dimensions.")
-        atlas_image = resample_to_same_dims(atlas_image, scan_image, 'nearest')
-    else:
-        print("Atlas is already in the scan dimensions.")
+    atlas_image = ants_to_nib(register_nifti(
+        nib_to_ants(atlas_image),
+        nib_to_ants(scan_image),
+        'nearest',
+    ))
 
     atlas_data: NDArray3[np.float32] = atlas_image.get_fdata()
     scan_data:  NDArray3[np.float32] = scan_image.get_fdata()

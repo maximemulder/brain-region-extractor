@@ -8,7 +8,7 @@ import nibabel as nib
 import numpy as np
 from nibabel.nifti1 import Nifti1Image
 
-from brain_region_database.nifti import load_nifti_image
+from brain_region_database.nifti import ants_to_nib, load_nifti_image
 from brain_region_database.process.orientation import reorient_nifti
 from brain_region_database.process.registration import register_nifti
 from brain_region_database.process.size import resize_nifti
@@ -64,6 +64,7 @@ def main() -> None:
 
     scan_path   = args.scan
     output_path = args.output
+    scan_image = load_nifti_image(scan_path)
 
     if args.register:
         if args.reference is None:
@@ -79,17 +80,13 @@ def main() -> None:
 
         print("Registering image...")
 
-        scan_image = register_nifti(scan_image, reference_image)  # type: ignore
-        output_path = get_full_output_path(args.output, scan_path.name)
-        ants.image_write(scan_image, str(output_path))  # type: ignore
-        args.scan = output_path
+        registered_image = register_nifti(scan_image, reference_image, args.interpolation)  # type: ignore
+        scan_image = ants_to_nib(registered_image)
 
     if args.reference is not None:
         reference_image = load_nifti_image(args.reference)
     else:
         reference_image = None
-
-    scan_image = load_nifti_image(scan_path)
 
     if args.respatialize:
         if reference_image is None:

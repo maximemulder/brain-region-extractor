@@ -1,8 +1,11 @@
+import tempfile
 from pathlib import Path
 from typing import Any, Literal
 
+import ants  # type: ignore
 import nibabel as nib
 import numpy as np
+from ants import ANTsImage  # type: ignore
 from nibabel.nifti1 import Nifti1Image
 from nibabel.nifti2 import Nifti2Image
 from nilearn.image import resample_img  # type: ignore
@@ -14,6 +17,8 @@ type NiftiImage = Nifti1Image | Nifti2Image
 type Interpolation = Literal['nearest', 'continuous']
 
 type NDArray3[T: Any] = np.ndarray[tuple[int, int, int], np.dtype[T]]
+
+type Zooms = tuple[float, float, float]
 
 
 def load_nifti_image(path: Path) -> NiftiImage:
@@ -55,3 +60,15 @@ def get_voxel_size(image: NiftiImage) -> str:
     except (AttributeError, IndexError):
         # Fallback if voxel size can't be determined
         return "1.00x1.00x1.00mm"
+
+
+def ants_to_nib(image: ANTsImage) -> NiftiImage:
+    _, temp_path = tempfile.mkstemp(suffix='.nii')
+    ants.image_write(image, temp_path)  # type: ignore
+    return load_nifti_image(Path(temp_path))
+
+
+def nib_to_ants(image: NiftiImage) -> ANTsImage:
+    _, temp_path = tempfile.mkstemp(suffix='.nii')
+    nib.save(image, temp_path)  # type: ignore
+    return ants.image_read(temp_path)  # type: ignore
